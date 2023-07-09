@@ -18,7 +18,7 @@ public class MTCollatz extends Thread {
 
     @Override
     public void run() {
-        System.out.println("HelloWorld");
+        System.out.println("Thread Created");
     }
 
     public static void main(String[] args){
