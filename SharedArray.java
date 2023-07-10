@@ -40,8 +40,13 @@ public class SharedArray {
 
     public void printValues() {
         for (int i = 0; i < this.histogram.length; i++){
-            System.out.println(i + 1 + " " + this.histogram[i]);
+            //System.out.println(i + 1 + " " + this.histogram[i]);
+            System.out.println(this.histogram[i]);
         }
+    }
+
+    public void calculateFrequencies() {
+        
     }
 
 }
