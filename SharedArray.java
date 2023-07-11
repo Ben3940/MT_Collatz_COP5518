@@ -1,13 +1,13 @@
 //package MT_Collatz_COP5518;
 
-
+import java.util.concurrent.locks.ReentrantLock;
 
 public class SharedArray {
     private int Counter = 1;
     private int N;
     private static int DEFAULT_N = 5000;
     private int[] histogram;
-
+    private ReentrantLock mutex = new ReentrantLock();
 
     public SharedArray(int user_defined_N){
         this.N = user_defined_N;
@@ -17,6 +17,10 @@ public class SharedArray {
     public SharedArray(){
         this.N = DEFAULT_N;
         this.histogram = new int[this.N];
+    }
+
+    public boolean Continue() {
+        return this.Counter < N;
     }
 
     public int getN() {
@@ -31,16 +35,26 @@ public class SharedArray {
     }
 
     public void incrementValue() {
-        this.Counter++;
+        try {
+            this.mutex.lock();
+            this.Counter++;
+        } finally {
+            this.mutex.unlock();
+        }
+       
     }
 
     public void addStoppingTime(int n, int stopTime){
-        this.histogram[n] = stopTime;
+        try {
+            this.mutex.lock();
+            this.histogram[n] = stopTime;
+        } finally {
+            this.mutex.unlock();
+        }
     }
 
     public void printValues() {
         for (int i = 0; i < this.histogram.length; i++){
-            //System.out.println(i + 1 + " " + this.histogram[i]);
             System.out.println(this.histogram[i]);
         }
     }

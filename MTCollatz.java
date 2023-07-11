@@ -1,49 +1,31 @@
-//package MT_Collatz_COP5518;
-
 import java.time.Instant;
-import java.util.ArrayList;
+import java.time.Duration;
 import java.util.concurrent.locks.ReentrantLock;
 
 
-//import MT_Collatz_COP5518.SharedArray;
-
 
 public class MTCollatz extends Thread {
-
-    private String _threadID;
     private SharedArray _sharedArray;
-    private ReentrantLock mutex;
 
-
-    public MTCollatz(String threadID, SharedArray sharedArray, ReentrantLock mutex){
-        this._threadID = threadID;
+    public MTCollatz(SharedArray sharedArray, ReentrantLock mutex){
         this._sharedArray = sharedArray;
-        this.mutex = mutex;
     }
 
     @Override
     public void run() {
-        boolean finished = false;
-        int counter = 0;
-        while (counter < this._sharedArray.getN()){
+        while (this._sharedArray.Continue()){
             int n_ORIG;
             int n;
             int timeStep = 1;
 
-            this.mutex.lock();
-            try {
-                n_ORIG = this._sharedArray.getValue();
-                if (n_ORIG == -1){
-                    break;
-                }
-                n = n_ORIG;
-                this._sharedArray.incrementValue();
-                counter++;
-            } finally {
-                this.mutex.unlock();
+            n_ORIG = this._sharedArray.getValue();
+            if (n_ORIG == -1){
+                break;
             }
+            n = n_ORIG;
+            this._sharedArray.incrementValue();
 
-            while (n != 1){
+            while (n > 1){
                 if (n % 2 == 0){
                     n = n / 2;
                 } else {
@@ -51,16 +33,13 @@ public class MTCollatz extends Thread {
                 }
                 timeStep++;
             }
-
-            this.mutex.lock();
-
-            try{
-                this._sharedArray.addStoppingTime(n_ORIG - 1, timeStep);
-            } finally {
-                this.mutex.unlock();
-                
-            }
+            this._sharedArray.addStoppingTime(n_ORIG - 1, timeStep);
+            
         }
+    }
+
+    public static void printTime(int n, int thread_count, Duration time) {
+        System.err.println(n + ", " + thread_count + ", " + time.toMillis());
     }
 
     public static void main(String[] args){
@@ -72,8 +51,10 @@ public class MTCollatz extends Thread {
         SharedArray sharedArray = new SharedArray(n);
         ReentrantLock lock = new ReentrantLock();
 
+        Instant start = Instant.now();
+
         for (int i = 0; i < thread_count; i++){
-            threads[i] = new MTCollatz(String.valueOf(i), sharedArray, lock);
+            threads[i] = new MTCollatz(sharedArray, lock);
             threads[i].start();
         }
 
@@ -81,16 +62,14 @@ public class MTCollatz extends Thread {
             for (int i = 0; i < thread_count; i++){
                 threads[i].join();
             }
+            
         } catch (InterruptedException xcp) {
-            System.err.println("unable to join threads");
+            System.out.println("unable to join threads");
         }
 
-        sharedArray.printValues();
-
-
-
-
-
-
+        Instant end = Instant.now();
+        Duration timeElapsed = Duration.between(start, end);
+        
+        MTCollatz.printTime(n, thread_count, timeElapsed);
     }
 }
