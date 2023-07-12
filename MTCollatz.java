@@ -1,5 +1,3 @@
-//package MT_Collatz_COP5518;
-
 /**
  * This is a program of Multi-Threaded Collatz Stopping Time Generator
  * The programm computes the Collatz sequences for numbers between 1 and 10000 using 8 threads
@@ -42,7 +40,6 @@ public class MTCollatz extends Thread {
 
     @Override
     public void run() {
-        //while (this._sharedArray.Continue()){
         while (true){
             int n;
             int timeStep = 1;
@@ -52,24 +49,8 @@ public class MTCollatz extends Thread {
                 break;
             }
 
-            while (n > 1){
-            this.mutex.lock();
-            try {
-                // Get current value from shared array
-                n_ORIG = this._sharedArray.getValue();
-                if (n_ORIG == -1){
-                    break;
-                }
-                n = n_ORIG;
-                // Increment value and counter
-                this._sharedArray.incrementValue();
-                counter++;
-            } finally {
-                this.mutex.unlock();
-            }
-            
             // Perform Collatz calculation
-            while (n != 1){
+            while (n > 1){
                 if (n % 2 == 0){
                     n = n / 2;
                 } else {
@@ -77,18 +58,8 @@ public class MTCollatz extends Thread {
                 }
                 timeStep++;
             }
+
             this._sharedArray.addStoppingTime(timeStep);
-
-            this.mutex.lock();
-
-            try{
-                // Add stopping time to shared array
-                this._sharedArray.addStoppingTime(n_ORIG - 1, timeStep);
-            } finally {
-                this.mutex.unlock();
-                
-            }
-        }
     }
 
     public static void printTime(int n, int thread_count, Duration time) {
@@ -131,9 +102,10 @@ public class MTCollatz extends Thread {
         Instant end = Instant.now();
         Duration timeElapsed = Duration.between(start, end);
         
-        MTCollatz.printTime(n, thread_count, timeElapsed);
-        
-      // Print the values in the shared array
+        // Print the values in the shared array to stdout
         sharedArray.printValues();
+
+        // Print execution times to stderr
+        MTCollatz.printTime(n, thread_count, timeElapsed);
     }
 }
