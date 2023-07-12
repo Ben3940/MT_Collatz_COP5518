@@ -13,13 +13,9 @@
 /**Import classes
  * Instant for time tracking
  * ArrayList for dynamic arrays
- * ReentrantLock for thread synchronization using locks
 */
 import java.time.Instant;
 import java.time.Duration;
-
-
-//import MT_Collatz_COP5518.SharedArray;
 
 /**
  * Constructor for MTCollatz thread
