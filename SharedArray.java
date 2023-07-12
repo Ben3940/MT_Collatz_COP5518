@@ -31,7 +31,7 @@ public class SharedArray {
         this.N = user_defined_N;
 
         // We devide by 6 to cut off "stopping times" towards the end whose occurrences are 0
-        this.histogram = new int[this.N/6];
+        this.histogram = new int[this.N/400];
     }
 
      
@@ -66,8 +66,6 @@ public class SharedArray {
         
     }
 
-    
-    //
     /**
      * Increment the current value in the shared array
      */
@@ -104,7 +102,6 @@ public class SharedArray {
         }
     }
     
-    //Print the values stored in the shared array
     /**
      * Prints histogram to stdout
      */
