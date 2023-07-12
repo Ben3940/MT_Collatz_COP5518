@@ -17,9 +17,8 @@
  * ArrayList for dynamic arrays
  * ReentrantLock for thread synchronization using locks
 */
-
 import java.time.Instant;
-import java.util.ArrayList;
+import java.time.Duration;
 import java.util.concurrent.locks.ReentrantLock;
 
 
@@ -33,27 +32,27 @@ import java.util.concurrent.locks.ReentrantLock;
 */
 
 public class MTCollatz extends Thread {
-
-    private String _threadID;
+    private int ThreadID;
     private SharedArray _sharedArray;
-    private ReentrantLock mutex;
 
-
-    public MTCollatz(String threadID, SharedArray sharedArray, ReentrantLock mutex){
-        this._threadID = threadID;
+    public MTCollatz(int threadID, SharedArray sharedArray, ReentrantLock mutex){
+        this.ThreadID = threadID;
         this._sharedArray = sharedArray;
-        this.mutex = mutex;
     }
 
     @Override
     public void run() {
-        boolean finished = false;
-        int counter = 0;
-        while (counter < this._sharedArray.getN()){
-            int n_ORIG;
+        //while (this._sharedArray.Continue()){
+        while (true){
             int n;
             int timeStep = 1;
 
+            n = this._sharedArray.getValue();
+            if (n > this._sharedArray.getN()){
+                break;
+            }
+
+            while (n > 1){
             this.mutex.lock();
             try {
                 // Get current value from shared array
@@ -78,6 +77,7 @@ public class MTCollatz extends Thread {
                 }
                 timeStep++;
             }
+            this._sharedArray.addStoppingTime(timeStep);
 
             this.mutex.lock();
 
@@ -91,19 +91,30 @@ public class MTCollatz extends Thread {
         }
     }
 
+    public static void printTime(int n, int thread_count, Duration time) {
+        System.err.println(n + ", " + thread_count + ", " + time.toMillis());
+    }
+
     public static void main(String[] args){
         // Retrieve input values from command-line arguments
         int n = Integer.parseInt(args[0]);
         int thread_count = Integer.parseInt(args[1]);
         MTCollatz[] threads = new MTCollatz[thread_count];
+        
 
+        // Instance of sharedArray that will be referenced by all MTCollatz objects created
         // Create a sharedArray object to be referenced by all MTCollatz threads
         SharedArray sharedArray = new SharedArray(n);
         ReentrantLock lock = new ReentrantLock();
         
         // Create and start MTCollatz threads
         for (int i = 0; i < thread_count; i++){
-            threads[i] = new MTCollatz(String.valueOf(i), sharedArray, lock);
+            threads[i] = new MTCollatz(6, sharedArray, lock);
+        }
+
+        Instant start = Instant.now();
+
+        for (int i = 0; i < thread_count; i++){
             threads[i].start();
         }
 
@@ -112,13 +123,17 @@ public class MTCollatz extends Thread {
             for (int i = 0; i < thread_count; i++){
                 threads[i].join();
             }
+            
         } catch (InterruptedException xcp) {
-            System.err.println("unable to join threads");
+            System.out.println("unable to join threads");
         }
 
-        // Print the values in the shared array
+        Instant end = Instant.now();
+        Duration timeElapsed = Duration.between(start, end);
+        
+        MTCollatz.printTime(n, thread_count, timeElapsed);
+        
+      // Print the values in the shared array
         sharedArray.printValues();
-
-
     }
 }
