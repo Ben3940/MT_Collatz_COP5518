@@ -7,11 +7,14 @@ public class SharedArray {
     private int N;
     private static int DEFAULT_N = 5000;
     private int[] histogram;
+
     private ReentrantLock mutex = new ReentrantLock();
+    //private ReentrantLock mutexForArray = new ReentrantLock();
 
     public SharedArray(int user_defined_N){
         this.N = user_defined_N;
-        this.histogram = new int[this.N];
+        //this.histogram = new int[this.N];
+        this.histogram = new int[this.N/6];
     }
 
     public SharedArray(){
@@ -28,10 +31,14 @@ public class SharedArray {
     }
 
     public int getValue() {
-        if (this.Counter > this.N){
-            return -1;
-        } 
-        return this.Counter;
+        try{
+            this.mutex.lock();
+            return this.Counter;
+        } finally {
+            this.incrementValue();
+            this.mutex.unlock();
+        }
+        
     }
 
     public void incrementValue() {
@@ -44,10 +51,18 @@ public class SharedArray {
        
     }
 
-    public void addStoppingTime(int n, int stopTime){
+    public void addStoppingTime(int stopTime){
+        // try {
+        //     this.mutexForArray.lock();
+        //     //this.histogram[n] = stopTime;
+        //     this.histogram[stopTime]++;
+        // } finally {
+        //     this.mutexForArray.unlock();
+        // }
         try {
             this.mutex.lock();
-            this.histogram[n] = stopTime;
+            //this.histogram[n] = stopTime;
+            this.histogram[stopTime]++;
         } finally {
             this.mutex.unlock();
         }
@@ -55,7 +70,7 @@ public class SharedArray {
 
     public void printValues() {
         for (int i = 0; i < this.histogram.length; i++){
-            System.out.println(this.histogram[i]);
+            System.out.println("k=" + (i + 1) + ", " +this.histogram[i]);
         }
     }
 

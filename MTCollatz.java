@@ -5,25 +5,25 @@ import java.util.concurrent.locks.ReentrantLock;
 
 
 public class MTCollatz extends Thread {
+    private int ThreadID;
     private SharedArray _sharedArray;
 
-    public MTCollatz(SharedArray sharedArray, ReentrantLock mutex){
+    public MTCollatz(int threadID, SharedArray sharedArray, ReentrantLock mutex){
+        this.ThreadID = threadID;
         this._sharedArray = sharedArray;
     }
 
     @Override
     public void run() {
-        while (this._sharedArray.Continue()){
-            int n_ORIG;
+        //while (this._sharedArray.Continue()){
+        while (true){
             int n;
             int timeStep = 1;
 
-            n_ORIG = this._sharedArray.getValue();
-            if (n_ORIG == -1){
+            n = this._sharedArray.getValue();
+            if (n > this._sharedArray.getN()){
                 break;
             }
-            n = n_ORIG;
-            this._sharedArray.incrementValue();
 
             while (n > 1){
                 if (n % 2 == 0){
@@ -33,7 +33,7 @@ public class MTCollatz extends Thread {
                 }
                 timeStep++;
             }
-            this._sharedArray.addStoppingTime(n_ORIG - 1, timeStep);
+            this._sharedArray.addStoppingTime(timeStep);
             
         }
     }
@@ -47,14 +47,19 @@ public class MTCollatz extends Thread {
         int thread_count = Integer.parseInt(args[1]);
         MTCollatz[] threads = new MTCollatz[thread_count];
 
+        
+
         // Instance of sharedArray that will be referenced by all MTCollatz objects created
         SharedArray sharedArray = new SharedArray(n);
         ReentrantLock lock = new ReentrantLock();
 
+        for (int i = 0; i < thread_count; i++){
+            threads[i] = new MTCollatz(6, sharedArray, lock);
+        }
+
         Instant start = Instant.now();
 
         for (int i = 0; i < thread_count; i++){
-            threads[i] = new MTCollatz(sharedArray, lock);
             threads[i].start();
         }
 
@@ -70,6 +75,8 @@ public class MTCollatz extends Thread {
         Instant end = Instant.now();
         Duration timeElapsed = Duration.between(start, end);
         
-        MTCollatz.printTime(n, thread_count, timeElapsed);
+        sharedArray.printValues();
+        //MTCollatz.printTime(n, thread_count, timeElapsed);
+        //sharedArray.printThreadContributions();
     }
 }
